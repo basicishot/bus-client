@@ -8,7 +8,7 @@
 
 # Bus Client  
 
-Bus Client is a **feature-packed** mod menu for Gorilla Tag copies, built by me, [**circuit**](https://github.com/basicishot). Whether you just want mods, are a developer, or anything inbetween, this menu has you covered. Designed to be **as useful as possible**, it includes a variety of features and options that let you customize your modding experience to your heart's content.  
+Bus Client is a **feature-packed** mod menu for Gorilla Tag copies, built by crimson and seamus. Whether you just want mods, are a developer, or anything inbetween, this menu has you covered. Designed to be **as useful as possible**, it includes a variety of features and options that let you customize your modding experience to your heart's content.  
 
 > Why settle for boring when you can have *stupidly* good?  
 
@@ -64,10 +64,6 @@ Let's bring back the collaboration of modding. No paywalls, no secrets, no malwa
 |Quest 1|✅|✅|
 |Quest 2|✅|✅|
 |Quest 3/3s|✅|✅|
-|Pico 4|✅|✅|
-|Valve Index|✅|✅|
-|HTC VIVE/PRO|✅|⚠️|
-|HP Reverb G2|✅|❓|
 
 > ✅ Fully functional ; ⚠️ Limited functionality ; ❌ Not functionable ; ❓ Untested
 
