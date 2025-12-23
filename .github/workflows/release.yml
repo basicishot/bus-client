@@ -6,6 +6,8 @@ on:
       - main
   release:
     types: [published]
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 jobs:
   notify:
@@ -13,13 +15,26 @@ jobs:
     steps:
       - name: send discord notification
         run: |
+          if [ "${{ github.repository }}" != "${{ github.event.repository.full_name }}" ]; then
+            echo "fork detected, skipping notification"
+            exit 0
+          fi
+
           if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
             message="new push by $GITHUB_ACTOR to $GITHUB_REPOSITORY\ncommit: ${{ github.event.head_commit.message }}\nbranch: ${GITHUB_REF}"
+
           elif [ "${GITHUB_EVENT_NAME}" = "release" ]; then
             message="new release published by $GITHUB_ACTOR\nrepo: $GITHUB_REPOSITORY\nrelease: ${{ github.event.release.name }} (${{
             github.event.release.tag_name }})\nurl: ${{ github.event.release.html_url }}"
-          fi
 
+          elif [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            pr_source="${{ github.event.pull_request.head.repo.full_name }}"
+            pr_branch="${{ github.event.pull_request.head.ref }}"
+            pr_number="${{ github.event.pull_request.number }}"
+            pr_title="${{ github.event.pull_request.title }}"
+            message="new pull request #$pr_number from $pr_source:$pr_branch\nrepo: $GITHUB_REPOSITORY\ntitle: $pr_title\nopened by: $GITHUB_ACTOR"
+          fi
+          
           curl -H "content-type: application/json" \
             -d "{\"content\":\"$message\"}" \
             ${{ secrets.DISCORD_WEBHOOK }}
