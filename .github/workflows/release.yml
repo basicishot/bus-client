@@ -1,0 +1,27 @@
+name: discord notifications
+
+on:
+  push:
+    branches:
+      - main
+  release:
+    types: [published]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: send discord notification
+        run: |
+          if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
+            message="new push by $GITHUB_ACTOR to $GITHUB_REPOSITORY\ncommit: ${{ github.event.head_commit.message }}\nbranch: ${GITHUB_REF}"
+          elif [ "${GITHUB_EVENT_NAME}" = "release" ]; then
+            message="new release published by $GITHUB_ACTOR\nrepo: $GITHUB_REPOSITORY\nrelease: ${{ github.event.release.name }} (${{
+            github.event.release.tag_name }})\nurl: ${{ github.event.release.html_url }}"
+          fi
+
+          curl -H "content-type: application/json" \
+            -d "{\"content\":\"$message\"}" \
+            ${{ secrets.DISCORD_WEBHOOK }}
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
