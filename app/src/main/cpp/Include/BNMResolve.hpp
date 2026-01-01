@@ -1004,6 +1004,14 @@ struct Rigidbody : Component{
         static Class mclass = Class("UnityEngine", "Rigidbody");
         return mclass;
     }
+    void SetDetectCollisions(bool detectCollisions){
+        static auto set_detectCollisions = (void(*)(void*, bool))GetExternMethod("UnityEngine.Rigidbody::set_detectCollisions");
+        set_detectCollisions(this, detectCollisions);
+    }
+    bool GetDetectCollisions(bool detectCollisions){
+        static auto get_detectCollisions = (bool(*)(void*))GetExternMethod("UnityEngine.Rigidbody::get_detectCollisions");
+        return get_detectCollisions(this);
+    }
     void SetUseGravity(bool useGravity){
         static auto set_useGravity = (void(*)(void*, bool))GetExternMethod("UnityEngine.Rigidbody::set_useGravity");
         set_useGravity(this, useGravity);

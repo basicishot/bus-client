@@ -68,6 +68,7 @@ add_library(${CMAKE_PROJECT_NAME}
         Include/Overpowered.cpp
         Include/Computer.cpp
         Include/Fun.cpp
+        Include/Extensions.cpp
 )
 
 target_include_directories(
