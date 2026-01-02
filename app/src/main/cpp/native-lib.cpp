@@ -258,13 +258,42 @@ void InitCategories() {
                 currentCategory = "home";
                 Draw();
             }},
-            {"Speedboost",   true, false, []() {
+            {"Speedboost",   false, false, []() {
                 GorillaLocomotion::Player::get_Instance()->SetMaxJumpSpeed(999.f);
                 GorillaLocomotion::Player::get_Instance()->SetJumpMultiplier(2.25f);
             }},
+            {"BIG Speedboost",   false, false, []() {
+                GorillaLocomotion::Player::get_Instance()->SetMaxJumpSpeed(999.f);
+                GorillaLocomotion::Player::get_Instance()->SetJumpMultiplier(7.5f);
+            }},
             {"Long Arms",    false, false, []() {
-                GameObject *arms = GameObject::Find("Player VR Controller");
-                arms->GetTransform()->SetLocalScale(Vector3(1.4f, 1.4f, 1.4f));
+                Transform* arms = GorillaTagger::get_Instance()->GetTransform();
+                arms->SetLocalScale(Vector3(1.4f, 1.4f, 1.4f));
+                GorillaLocomotion::Player::get_Instance()->SetMaxArmLength(999.9f);
+            }},
+            {"Longer Arms",    false, false, []() {
+                Transform* arms = GorillaTagger::get_Instance()->GetTransform();
+                arms->SetLocalScale(Vector3(2.5f, 2.5f, 2.5f));
+                GorillaLocomotion::Player::get_Instance()->SetMaxArmLength(999.9f);
+            }},
+            {" Longest Arms",    false, false, []() {
+                Transform* arms = GorillaTagger::get_Instance()->GetTransform();
+                arms->SetLocalScale(Vector3(5.0f, 5.0f, 5.0f));
+                GorillaLocomotion::Player::get_Instance()->SetMaxArmLength(999.9f);
+            }},
+            {"Short Arms",    false, false, []() {
+                Transform* arms = GorillaTagger::get_Instance()->GetTransform();
+                arms->SetLocalScale(Vector3(0.5f, 0.5f, 0.5f));
+            }},
+            {"Stick Longarms", true, false, []() {
+                GorillaLocomotion::Player::get_Instance()->SetRightHandOffset(Vector3(0.f, 0.f, 0.35f));
+                GorillaLocomotion::Player::get_Instance()->SetLeftHandOffset(Vector3(0.f, 0.f, 0.35f));
+            }},
+            {"Fix Arms",    false, false, []() {
+                Transform* arms = GorillaTagger::get_Instance()->GetTransform();
+                arms->SetLocalScale(Vector3(1.0f, 1.0f, 1.0f));
+                GorillaLocomotion::Player::get_Instance()->SetRightHandOffset(Vector3(0.f, 0.f, 0.f));
+                GorillaLocomotion::Player::get_Instance()->SetLeftHandOffset(Vector3(0.f, 0.f, 0.f));
             }},
             {"Fly",          true,  false, []() {
                 static bool flying = false;
@@ -328,8 +357,9 @@ void InitCategories() {
                         Vector3 platPos = Vector3(controllerPos.x, controllerPos.y - 0.1f,
                                                   controllerPos.z);
                         rightPlat->GetTransform()->SetPosition(platPos);
+                        rightPlat->GetTransform()->SetRotation(controller->GetTransform()->GetRotation());
                         rightPlat->GetTransform()->SetLocalScale(
-                                Vector3(0.289351, 0.03870832, 0.4166668));
+                                Vector3(0.03870832, 0.289351, 0.4166668));
                     }
                 } else {
                     if (rightPlat != nullptr) {
@@ -346,7 +376,9 @@ void InitCategories() {
                         Vector3 platPos = Vector3(controllerPos.x, controllerPos.y - 0.1f,
                                                   controllerPos.z);
                         leftPlat->GetTransform()->SetPosition(platPos);
-                        leftPlat->GetTransform()->SetLocalScale(Vector3(0.4f, 0.05f, 0.4f));
+                        leftPlat->GetTransform()->SetRotation(controller->GetTransform()->GetRotation());
+                        leftPlat->GetTransform()->SetLocalScale(
+                                Vector3(0.03870832, 0.289351, 0.4166668));
                     }
                 } else {
                     if (leftPlat != nullptr) {
@@ -355,31 +387,65 @@ void InitCategories() {
                     }
                 }
             }},
-            {"Noclip", true, false, []() {
-                auto *leftHand = reinterpret_cast<Rigidbody *>(GameObject::Find("LeftHand Controller")->GetComponent(Rigidbody::GetType()));
-                auto *rightHand = reinterpret_cast<Rigidbody *>(GameObject::Find("RightHand Controller")->GetComponent(Rigidbody::GetType()));
-                auto *body = reinterpret_cast<Rigidbody *>(GameObject::Find("GorillaPlayer")->GetComponent(Rigidbody::GetType()));
-
-                if (XRInput::GetBoolFeature(BoolFeature::SecondaryButton, Controller::Right)) {
-                    leftHand->SetDetectCollisions(false);
-                    body->SetDetectCollisions(false);
-                    rightHand->SetDetectCollisions(false);
+            {"Sticky Platforms",    true,  false, []() {
+                static std::vector<GameObject*> rightPlat(4, nullptr);
+                if (XRInput::GetBoolFeature(BoolFeature::GripButton, Controller::Right)) {
+                    for (int i = 0; i < 3; i++) {
+                        if (rightPlat[i] == nullptr) {
+                            GameObject *controller = GameObject::Find("RightHand Controller");
+                            rightPlat[i] = GameObject::CreatePrimitive(PrimitiveType::Cube);
+                            Vector3 controllerPos = controller->GetTransform()->GetPosition();
+                            Vector3 platPos = Vector3(controllerPos.x, controllerPos.y,
+                                                      controllerPos.z + 0.1f - 0.05f * i);
+                            rightPlat[i]->GetTransform()->SetPosition(platPos);
+                            rightPlat[i]->GetTransform()->SetRotation(
+                                    controller->GetTransform()->GetRotation());
+                            rightPlat[i]->GetTransform()->SetLocalScale(
+                                    Vector3(0.03870832, 0.05, 0.4166668));
+                        }
+                        else {
+                            if (rightPlat[i] != nullptr) {
+                                GameObject::Destroy(rightPlat[i]);
+                                rightPlat[i] = nullptr;
+                            }
+                        }
+                    }
                 }
-                else {
-                    leftHand->SetDetectCollisions(true);
-                    body->SetDetectCollisions(true);
-                    rightHand->SetDetectCollisions(true);
+                static std::vector<GameObject*> leftPlat(4, nullptr);
+                if (XRInput::GetBoolFeature(BoolFeature::GripButton, Controller::Left)) {
+                    for (int i = 0; i < 3; i++) {
+                        if (leftPlat[i] == nullptr) {
+                            GameObject *controller = GameObject::Find("LeftHand Controller");
+                            leftPlat[i] = GameObject::CreatePrimitive(PrimitiveType::Cube);
+                            Vector3 controllerPos = controller->GetTransform()->GetPosition();
+                            Vector3 platPos = Vector3(controllerPos.x, controllerPos.y,
+                                                      controllerPos.z + 0.1f - 0.05f * i);
+                            leftPlat[i]->GetTransform()->SetPosition(platPos);
+                            leftPlat[i]->GetTransform()->SetRotation(
+                                    controller->GetTransform()->GetRotation());
+                            leftPlat[i]->GetTransform()->SetLocalScale(
+                                    Vector3(0.03870832, 0.05, 0.4166668));
+                        }
+                        else {
+                            if (leftPlat[i] != nullptr) {
+                                GameObject::Destroy(leftPlat[i]);
+                                leftPlat[i] = nullptr;
+                            }
+                        }
+                    }
                 }
             }},
             {"Zero Gravity", false, false, []() {
-                Component* gP = GameObject::Find("GorillaPlayer")->GetComponent(Rigidbody::GetType());
-                auto *rigidBody = reinterpret_cast<Rigidbody *>(gP);
-                rigidBody->SetUseGravity(false);
+                Physics::SetGravity(Vector3{0.0f, 0.0f, 0.0f});
+            }},
+            {"Low Gravity", false, false, []() {
+                Physics::SetGravity(Vector3{0.0f, -5.0f, 0.0f});
+            }},
+            {"High Gravity", false, false, []() {
+                Physics::SetGravity(Vector3{0.0f, -50.0f, 0.0f});
             }},
             {"Fix Gravity",  false, false, []() {
-                Component* gP = GameObject::Find("GorillaPlayer")->GetComponent(Rigidbody::GetType());
-                auto* rigidBody = reinterpret_cast<Rigidbody*>(gP);
-                rigidBody->SetUseGravity(true);
+                Physics::SetGravity(Vector3{0.0f, -9.81f, 0.0f});
             }},
             {"No Tag Freeze", true, false, []() {
                 GorillaLocomotion::Player::get_Instance()->SetDisableMovement(false);
@@ -418,6 +484,21 @@ void InitCategories() {
                     rb->SetVelocity( velo + additive );
                 }
             }},
+            {"Left And Right", true, false, []() {
+                static auto inst = GorillaLocomotion::Player::get_Instance();
+                static Rigidbody* rb = inst->GetPlayerRigidBody();
+
+                if (XRInput::GetFloatFeature(FloatFeature::Trigger, Controller::Right) > .5f) {
+                    Vector3 velo = rb->GetVelocity();
+                    Vector3 additive = ((GorillaLocomotion::Player::get_Instance()->GetBodyCollider()->GetTransform()->GetRight() * Time::GetDeltaTime()) * -30.f);
+                    rb->SetVelocity( velo + additive );
+                }
+                if (XRInput::GetFloatFeature(FloatFeature::Trigger, Controller::Left) > .5f) {
+                    Vector3 velo = rb->GetVelocity();
+                    Vector3 additive = ((GorillaLocomotion::Player::get_Instance()->GetBodyCollider()->GetTransform()->GetRight() * Time::GetDeltaTime()) * 30.f);
+                    rb->SetVelocity( velo + additive );
+                }
+            }},
             {"Gorilla Car", true, false, []() {
                 static auto inst = GorillaLocomotion::Player::get_Instance();
                 static Rigidbody* rb = inst->GetPlayerRigidBody();
@@ -433,47 +514,20 @@ void InitCategories() {
                     rb->SetVelocity( velo + additive );
                 }
             }},
-            {"Pull Mod", true, false, []() {
-                bool lasttouchleft = false;
-                bool lasttouchright = false;
-                if (((!GorillaLocomotion::Player::get_Instance()->IsHandTouching(true) && lasttouchleft) || (!!GorillaLocomotion::Player::get_Instance()->IsHandTouching(false) && lasttouchright)) && XRInput::GetFloatFeature(FloatFeature::Grip, Controller::Right) > .5f)
-                {
-                    Vector3 vel = GorillaLocomotion::Player::get_Instance()->GetPlayerRigidBody()->GetVelocity();
-                    Transform* tran = GorillaLocomotion::Player::get_Instance()->GetTransform();
-                    tran->SetPosition(tran->GetPosition() + Vector3(vel.x * 1, 0.f, vel.z * 1));
+            {"F1 Gorilla Car", true, false, []() {
+                static auto inst = GorillaLocomotion::Player::get_Instance();
+                static Rigidbody* rb = inst->GetPlayerRigidBody();
+
+                if (XRInput::GetFloatFeature(FloatFeature::Trigger, Controller::Right) > .5f) {
+                    Vector3 velo = rb->GetVelocity();
+                    Vector3 additive = ((inst->GetBodyCollider()->GetTransform()->GetForward() * Time::GetDeltaTime()) * 90.f);
+                    rb->SetVelocity( velo + additive );
                 }
-                lasttouchleft = GorillaLocomotion::Player::get_Instance()->IsHandTouching(true);
-                lasttouchright = GorillaLocomotion::Player::get_Instance()->IsHandTouching(false);
-            }},
-            {"Frozone", true, false, []() {
-                bool leftGrab = XRInput::GetFloatFeature(FloatFeature::Grip, Controller::Left) > .5f;
-                bool rightGrab = XRInput::GetFloatFeature(FloatFeature::Grip, Controller::Right) > .5f;
-
-                if (leftGrab)
-                {
-                    GameObject* slipperyPlatform = GameObject::CreatePrimitive(PrimitiveType::Cube);
-                    slipperyPlatform->SetName(O("Frozone"));
-                    reinterpret_cast<Renderer*>(slipperyPlatform->GetComponent(Renderer::GetType()))->GetMaterial()->SetColor(Color::cyan);
-                    slipperyPlatform->GetTransform()->SetLocalScale(Vector3(0.025f, 0.3f, 0.4f));
-                    slipperyPlatform->GetTransform()->SetPosition(GorillaLocomotion::Player::get_Instance()->GetLeftHandTransform()->GetPosition() + Vector3(0, -.1f, .0f));
-                    slipperyPlatform->GetTransform()->SetRotation(GorillaLocomotion::Player::get_Instance()->GetLeftHandTransform()->GetRotation());
-
-                    GameObject::Destroy(slipperyPlatform, 1);
+                if (XRInput::GetFloatFeature(FloatFeature::Trigger, Controller::Left) > .5f) {
+                    Vector3 velo = rb->GetVelocity();
+                    Vector3 additive = ((inst->GetBodyCollider()->GetTransform()->GetForward() * Time::GetDeltaTime()) * -90.f);
+                    rb->SetVelocity( velo + additive );
                 }
-
-                if (rightGrab)
-                {
-                    GameObject* slipperyPlatform = GameObject::CreatePrimitive(PrimitiveType::Cube);
-                    slipperyPlatform->SetName(O("Frozone"));
-                    reinterpret_cast<Renderer*>(slipperyPlatform->GetComponent(Renderer::GetType()))->GetMaterial()->SetColor(Color::cyan);
-                    slipperyPlatform->GetTransform()->SetLocalScale(Vector3(0.025f, 0.3f, 0.4f));
-                    slipperyPlatform->GetTransform()->SetPosition(GorillaLocomotion::Player::get_Instance()->GetRightHandTransform()->GetPosition() + Vector3(0, -.1f, .0f));
-                    slipperyPlatform->GetTransform()->SetRotation(GorillaLocomotion::Player::get_Instance()->GetRightHandTransform()->GetRotation());
-
-                    GameObject::Destroy(slipperyPlatform, 1);
-                }
-
-                GorillaLocomotion::Player::get_Instance()->GetBodyCollider()->SetEnabled(!(leftGrab || rightGrab));
             }},
             {"Slide Control", true, false, []() {
                 float oldSlideControl = -1.0f;
@@ -484,7 +538,7 @@ void InitCategories() {
                 instance->SetSlideControl(1.0f);
             }},
             {"TFly", true, false, []() {
-                float flySpeed = 10.f;
+                float flySpeed = 12.f;
                 if (XRInput::GetFloatFeature(FloatFeature::Trigger, Controller::Right) > .5f) {
                     static auto inst = GorillaLocomotion::Player::get_Instance();
                     static Rigidbody* rb = inst->GetPlayerRigidBody();
@@ -492,23 +546,12 @@ void InitCategories() {
                     rb->SetVelocity(Vector3::zero);
                 }
             }},
-            {"ExcelFly", true, false, []() {
-                static Transform* leftHandTransform = GorillaLocomotion::Player::get_Instance()->GetLeftHandTransform();
-                static Transform* rightHandTransform = GorillaLocomotion::Player::get_Instance()->GetRightHandTransform();
-                static Rigidbody* rb = GorillaLocomotion::Player::get_Instance()->GetPlayerRigidBody();
-
-                if (XRInput::GetBoolFeature(BoolFeature::PrimaryButton, Controller::Right)) {
-                    rb->SetVelocity(rb->GetVelocity() + (rightHandTransform->GetRight() / 2.0f));
-                }
-
-                if (XRInput::GetBoolFeature(BoolFeature::PrimaryButton, Controller::Left)) {
-                    rb->SetVelocity(rb->GetVelocity() + (-leftHandTransform->GetRight() / 2.0f));
-                }
-            }},
             {"Joystick Fly", true, false, []() {
                 float flySpeed = 10.f;
                 static auto inst = GorillaLocomotion::Player::get_Instance();
                 static auto rb = inst->GetPlayerRigidBody();
+
+                rb->AddForce(-Physics::GetGravity(), ForceMode::Acceleration);
 
                 Vector2 leftJoystick = XRInput::GetVector2Feature(Vector2Feature::Primary2DAxis, Controller::Left);
                 Vector2 rightJoystick = XRInput::GetVector2Feature(Vector2Feature::Primary2DAxis, Controller::Right);
@@ -530,7 +573,7 @@ void InitCategories() {
 
                     gorillaplayer->SetPosition(gorillaplayer->GetPosition() + collida->GetForward() * Time::GetDeltaTime() * 7.5f);
                 }
-            }}
+            }},
     };
     vector<ModButton> roomMods = {
             {"Back",                false, true,  []() {
