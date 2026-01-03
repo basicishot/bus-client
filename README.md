@@ -12,7 +12,7 @@ Bus Client is a **feature-packed** mod menu for Gorilla Tag copies, built by cri
 
 > Why settle for boring when you can have *stupidly* good?  
 
-> [!WARNINH] 
+> [!WARNING] 
 > You CANNOT call this your OWN menu, that is called skidding. ALWAYS give credits to crimson and bus client.
 
 <details>
